@@ -3,9 +3,15 @@
  */
 package twitter;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * SocialNetwork provides methods that operate on a social network.
@@ -40,9 +46,56 @@ public class SocialNetwork {
      *         All the Twitter usernames in the returned social network must be
      *         either authors or @-mentions in the list of tweets.
      */
-    public static Map<String, Set<String>> guessFollowsGraph(List<Tweet> tweets) {
-        throw new RuntimeException("not implemented");
-    }
+//    public static Map<String, Set<String>> guessFollowsGraph(List<Tweet> tweets) {
+//        throw new RuntimeException("not implemented");
+//    }
+//	 public static Map<String, Set<String>> guessFollowsGraph(List<Tweet> tweets) {
+//	        Map<String, Set<String>> followsGraph = new HashMap<>();
+//
+//	        for (Tweet tweet : tweets) {
+//	            String author = tweet.getAuthor().toLowerCase();
+//	            Set<String> mentionedUsers = Extract.getMentionedUsers(Collections.singletonList(tweet));
+//
+//	            // Add mentioned users to the author's follow set
+//	            if (!mentionedUsers.isEmpty()) {
+//	                followsGraph.putIfAbsent(author, new HashSet<>());
+//	                for (String mentionedUser : mentionedUsers) {
+//	                    followsGraph.get(author).add(mentionedUser.toLowerCase());  // Ensure mentioned users are also in lowercase
+//	                }
+//	            }
+//	        }
+//	        return followsGraph;
+//	    }
+	public static Map<String, Set<String>> guessFollowsGraph(List<Tweet> tweets) {
+	    Map<String, Set<String>> followsGraph = new HashMap<>();
+
+	    for (Tweet tweet : tweets) {
+	        String author = tweet.getAuthor();
+	        Set<String> mentions = extractMentions(tweet);
+
+//	        // Add the author if not already in the map
+//	        followsGraph.putIfAbsent(author, new HashSet<>());
+//
+//	        // Add all mentioned users to the author's set
+//	        followsGraph.get(author).addAll(mentions);
+	        if (!mentions.isEmpty()) {
+	            followsGraph.putIfAbsent(author, new HashSet<>());
+	            followsGraph.get(author).addAll(mentions);
+	        }
+	    
+	    }
+
+	    return followsGraph;
+	}
+
+	private static Set<String> extractMentions(Tweet tweet) {
+	    Set<String> mentions = new HashSet<>();
+	    Matcher matcher = Pattern.compile("@(\\w+)").matcher(tweet.getText());
+	    while (matcher.find()) {
+	        mentions.add(matcher.group(1));
+	    }
+	    return mentions;
+	}
 
     /**
      * Find the people in a social network who have the greatest influence, in
@@ -53,8 +106,25 @@ public class SocialNetwork {
      * @return a list of all distinct Twitter usernames in followsGraph, in
      *         descending order of follower count.
      */
-    public static List<String> influencers(Map<String, Set<String>> followsGraph) {
-        throw new RuntimeException("not implemented");
-    }
+//    public static List<String> influencers(Map<String, Set<String>> followsGraph) {
+//        throw new RuntimeException("not implemented");
+//    }
+	 public static List<String> influencers(Map<String, Set<String>> followsGraph) {
+	        // Map to store the follower count for each user
+	        Map<String, Integer> followerCount = new HashMap<>();
+
+	        // Traverse the followsGraph to compute follower count for each user
+	        for (Set<String> followers : followsGraph.values()) {
+	            for (String user : followers) {
+	                followerCount.put(user, followerCount.getOrDefault(user, 0) + 1);
+	            }
+	        }
+
+	        // Sort the users by follower count in descending order
+	        List<String> influencers = new ArrayList<>(followerCount.keySet());
+	        influencers.sort((user1, user2) -> followerCount.get(user2) - followerCount.get(user1));
+
+	        return influencers;
+	    }
 
 }
